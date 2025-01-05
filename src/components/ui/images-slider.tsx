@@ -1,3 +1,4 @@
+"use client";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
@@ -20,16 +21,27 @@ export const ImagesSlider = ({
   direction?: "up" | "down";
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [, setLoading] = useState(false);
   const [loadedImages, setLoadedImages] = useState<string[]>([]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleNext = () => {
     setCurrentIndex((prevIndex) =>
       prevIndex + 1 === images.length ? 0 : prevIndex + 1
     );
   };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  const handlePrevious = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex - 1 < 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+
+  useEffect(() => {
+    loadImages();
+  }, []);
+
   const loadImages = () => {
+    setLoading(true);
     const loadPromises = images.map((image) => {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -42,20 +54,10 @@ export const ImagesSlider = ({
     Promise.all(loadPromises)
       .then((loadedImages) => {
         setLoadedImages(loadedImages as string[]);
+        setLoading(false);
       })
       .catch((error) => console.error("Failed to load images", error));
   };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handlePrevious = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex - 1 < 0 ? images.length - 1 : prevIndex - 1
-    );
-  };
-
-  useEffect(() => {
-    loadImages();
-  }, [loadImages]);
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight") {
@@ -79,7 +81,7 @@ export const ImagesSlider = ({
       window.removeEventListener("keydown", handleKeyDown);
       clearInterval(interval);
     };
-  }, [autoplay, handleNext, handlePrevious]);
+  }, []);
 
   const slideVariants = {
     initial: {
